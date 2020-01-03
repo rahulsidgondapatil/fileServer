@@ -1,0 +1,6 @@
+{
+    "workbench.editor.enablePreview": false,
+    "javascript.format.enable": false,
+    "editor.formatOnSave": true,
+    "files.autoSave": "afterDelay"
+}
