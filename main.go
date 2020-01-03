@@ -31,6 +31,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 var fpath = "/tmp/test.txt"
 
 func main() {
+	//os.Setenv("REDIS_SERVICE", "localhost")
+	//os.Setenv("REDIS_PORT", "6379")
+
 	// Create Server and Route Handlers
 	r := mux.NewRouter()
 
@@ -45,8 +48,8 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	createFile()
-	writeFile()
+	//createFile()
+	//writeFile("Hello K8s!!\n")
 
 	// Start Server
 	go func() {
@@ -61,8 +64,13 @@ func main() {
 }
 
 func newRedisClient() *redis.Client {
+	redisSvc := os.Getenv("REDIS_SERVICE")
+	redisPort := os.Getenv("REDIS_PORT")
+	redisUrl := redisSvc + ":" + redisPort
+	//fmt.Printf("\nRedis url is:%v", redisUrl)
+
 	client := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     redisUrl,
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
@@ -99,7 +107,8 @@ func fileHandler(w http.ResponseWriter, r *http.Request) {
 	count, _ := strconv.Atoi(reqCount)
 	count++
 	rclient.Set(freqCount, count, time.Second*1000000)
-	fmt.Printf("\nsTotal number of request:%v", count)
+	//fmt.Printf("\nsTotal number of request:%v", count)
+	writeFile(fmt.Sprintf("\nsTotal number of request:%v", count))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fp := path.Join(fpath)
 	http.ServeFile(w, r, fp)
@@ -121,7 +130,7 @@ func createFile() {
 	fmt.Println("==> done creating file", fpath)
 }
 
-func writeFile() {
+func writeFile(content string) {
 	// open file using READ & WRITE permission
 	var file, err = os.OpenFile(fpath, os.O_RDWR, 0644)
 	if isError(err) {
@@ -130,7 +139,7 @@ func writeFile() {
 	defer file.Close()
 
 	// write some text line-by-line to file
-	_, err = file.WriteString("hello Citadel assignement!!!\n")
+	_, err = file.WriteString(content)
 	if isError(err) {
 		return
 	}
